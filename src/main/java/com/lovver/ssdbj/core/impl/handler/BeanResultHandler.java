@@ -7,8 +7,7 @@ public class BeanResultHandler<T> implements ResultHandler<T> {
 
 	@Override
 	public T handler(BaseResultSet resultSet) {
-		
 		return null;
 	}
-	
+
 }

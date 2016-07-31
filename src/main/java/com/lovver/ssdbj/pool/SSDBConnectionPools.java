@@ -2,11 +2,12 @@ package com.lovver.ssdbj.pool;
 
 import java.util.Properties;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.AbandonedConfig;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+
+import jodd.util.StringUtil;
 
 @SuppressWarnings("rawtypes")
 public class SSDBConnectionPools  extends GenericObjectPool<SSDBPoolConnection> {
@@ -34,43 +35,43 @@ public class SSDBConnectionPools  extends GenericObjectPool<SSDBPoolConnection> 
 		String blockWhenExhausted=props.getProperty("blockWhenExhausted");
 		
 		GenericObjectPoolConfig poolConfig=new GenericObjectPoolConfig();
-		if(StringUtils.isNotEmpty(minIdle)){
+		if(StringUtil.isNotEmpty(minIdle)){
 			poolConfig.setMinIdle(new Integer(minIdle));
 		}
-		if(StringUtils.isNotEmpty(maxTotal)){
+		if(StringUtil.isNotEmpty(maxTotal)){
 			poolConfig.setMaxTotal(new Integer(maxTotal));
 		}
-		if(StringUtils.isNotEmpty(maxIdle)){
+		if(StringUtil.isNotEmpty(maxIdle)){
 			poolConfig.setMaxIdle(new Integer(maxIdle));
 		}
-		if(StringUtils.isNotEmpty(maxWaitMillis)){
+		if(StringUtil.isNotEmpty(maxWaitMillis)){
 			poolConfig.setMaxWaitMillis(new Integer(maxWaitMillis));
 		}
-		if(StringUtils.isNotEmpty(minEvictableIdleTimeMillis)){
+		if(StringUtil.isNotEmpty(minEvictableIdleTimeMillis)){
 			poolConfig.setMinEvictableIdleTimeMillis(new Long(minEvictableIdleTimeMillis));
 		}
-		if(StringUtils.isNotEmpty(timeBetweenEvictionRunsMillis)){
+		if(StringUtil.isNotEmpty(timeBetweenEvictionRunsMillis)){
 			poolConfig.setTimeBetweenEvictionRunsMillis(new Long(timeBetweenEvictionRunsMillis));
 		}
-		if(StringUtils.isNotEmpty(testWhileIdle)){
+		if(StringUtil.isNotEmpty(testWhileIdle)){
 			poolConfig.setTestWhileIdle(new Boolean(testWhileIdle));
 		}
-		if(StringUtils.isNotEmpty(testOnReturn)){
+		if(StringUtil.isNotEmpty(testOnReturn)){
 			poolConfig.setTestOnReturn(new Boolean(testOnReturn));
 		}
-		if(StringUtils.isNotEmpty(testOnCreate)){
+		if(StringUtil.isNotEmpty(testOnCreate)){
 			poolConfig.setTestOnCreate(new Boolean(testOnCreate));
 		}
-		if(StringUtils.isNotEmpty(testOnBorrow)){
+		if(StringUtil.isNotEmpty(testOnBorrow)){
 			poolConfig.setTestOnBorrow(new Boolean(testOnBorrow));
 		}
-		if(StringUtils.isNotEmpty(softMinEvictableIdleTimeMillis)){
+		if(StringUtil.isNotEmpty(softMinEvictableIdleTimeMillis)){
 			poolConfig.setSoftMinEvictableIdleTimeMillis(new Long(softMinEvictableIdleTimeMillis));
 		}
-		if(StringUtils.isNotEmpty(numTestsPerEvictionRun)){
+		if(StringUtil.isNotEmpty(numTestsPerEvictionRun)){
 			poolConfig.setNumTestsPerEvictionRun(new Integer(numTestsPerEvictionRun));
 		}
-		if(StringUtils.isNotEmpty(blockWhenExhausted)){
+		if(StringUtil.isNotEmpty(blockWhenExhausted)){
 			poolConfig.setBlockWhenExhausted(new Boolean(blockWhenExhausted));
 		}
 		String removeAbandonedOnBorrow=props.getProperty("removeAbandonedOnBorrow","false");

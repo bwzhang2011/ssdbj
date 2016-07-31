@@ -13,24 +13,27 @@ public interface BaseConnection extends Wrapper {
 	/**
 	 * 关闭连接
 	 */
-	public void close();
+	void close();
+
 	/**
 	 * 判断连接是否关闭
 	 * 
 	 * @return
 	 */
-	public boolean isClose();
+	boolean isClose();
+
 	/**
 	 * 判断连接是否正常
 	 */
-	public boolean isConnection();
+	boolean isConnection();
+
 	/**
 	 * 获取指令执行器
 	 * 
 	 * @return
 	 */
-	public CommandExecutor getCommandExecutor();
-	
+	CommandExecutor getCommandExecutor();
+
 	/**
 	 * 执行指令并且返回结果
 	 * 
@@ -39,8 +42,8 @@ public interface BaseConnection extends Wrapper {
 	 * @return
 	 * @throws SSDBException
 	 */
-	public BaseResultSet execute(String cmd,List<byte[]> params)throws SSDBException;
-	
+	BaseResultSet execute(String cmd, List<byte[]> params) throws SSDBException;
+
 	/**
 	 * 执行命令并且更新db
 	 * 
@@ -48,5 +51,5 @@ public interface BaseConnection extends Wrapper {
 	 * @param params
 	 * @throws SSDBException
 	 */
-	public boolean executeUpdate(String cmd,List<byte[]> params)throws SSDBException;
+	boolean executeUpdate(String cmd, List<byte[]> params) throws SSDBException;
 }

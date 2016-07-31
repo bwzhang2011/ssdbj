@@ -4,48 +4,46 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import com.lovver.ssdbj.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.lovver.ssdbj.core.impl.SSDBConnection;
 import com.lovver.ssdbj.exception.SSDBException;
 import com.lovver.ssdbj.util.GT;
 
 public class SSDBDriver {
-	private static final Logger logger = new Logger();
+	private static final Logger LOGGER = LoggerFactory.getLogger(SSDBDriver.class);
 	public static final int DEBUG = 2;
 	public static final int INFO = 1;
 
-	public SSDBConnection connect(Properties info)
-			throws SSDBException {
-		 long timeout = timeout(info);
-         if (timeout <= 0)
-             return makeConnection(info);
+	public SSDBConnection connect(Properties info) throws SSDBException {
+		long timeout = timeout(info);
+		if (timeout <= 0)
+			return makeConnection(info);
 
-         ConnectThread ct = new ConnectThread(info);
-         new Thread(ct, "SSDB Server connection thread").start();
-         return ct.getResult(timeout);
+		ConnectThread ct = new ConnectThread(info);
+		new Thread(ct, "SSDB Server connection thread").start();
+		return ct.getResult(timeout);
 	}
-	
-	private static SSDBConnection makeConnection(Properties props) throws SSDBException { 
-        return new SSDBConnection(host(props), port(props), user(props), props);
+
+	private static SSDBConnection makeConnection(Properties props) throws SSDBException {
+		return new SSDBConnection(host(props), port(props), user(props), props);
 	}
-	
 
 	private static long timeout(Properties props) {
 		String timeout = props.getProperty("loginTimeout");
 		if (timeout != null) {
 			try {
 				return (long) (Float.parseFloat(timeout) * 1000);
-			} catch (NumberFormatException e) {
-				// Log level isn't set yet, so this doesn't actually
-				// get printed.
-				logger.debug("Couldn't parse loginTimeout value: " + timeout);
+			} catch (NumberFormatException e) {				
+				LOGGER.debug("Couldn't parse loginTimeout value: " + timeout);
 			}
 		}
 		return DriverManager.getLoginTimeout() * 1000;
 	}
 
 	private static class ConnectThread implements Runnable {
-		ConnectThread( Properties props) {
+		ConnectThread(Properties props) {
 			this.props = props;
 		}
 
@@ -100,24 +98,22 @@ public class SSDBDriver {
 							resultException.fillInStackTrace();
 							throw (SSDBException) resultException;
 						} else {
-							throw new SSDBException(
-									GT.tr("Something unusual has occured to cause the driver to fail. Please report this exception."));
+							throw new SSDBException(GT.tr(
+									"Something unusual has occured to cause the driver to fail. Please report this exception."));
 						}
 					}
 
 					long delay = expiry - System.currentTimeMillis();
 					if (delay <= 0) {
 						abandoned = true;
-						throw new SSDBException(
-								GT.tr("Connection attempt timed out."));
+						throw new SSDBException(GT.tr("Connection attempt timed out."));
 					}
 
 					try {
 						wait(delay);
 					} catch (InterruptedException ie) {
 						abandoned = true;
-						throw new SSDBException(
-								GT.tr("Interrupted while attempting to connect."));
+						throw new SSDBException(GT.tr("Interrupted while attempting to connect."));
 					}
 				}
 			}
@@ -128,32 +124,28 @@ public class SSDBDriver {
 		private Throwable resultException;
 		private boolean abandoned;
 	}
-	
-	
-	
-	 /**
-     * @return the hostname portion of the URL
-     */
-    private static String host(Properties props)
-    {
-//        return props.getProperty("SSDB_HOST", "localhost");
-        return props.getProperty("SSDB_HOST", "localhost");
-    }
 
-    /**
-     * @return the port number portion of the URL or the default if no port was specified
-     */
-    private static int port(Properties props)
-    {
-        return Integer.parseInt(props.getProperty("SSDB_PORT", "8888"));
-    }
+	/**
+	 * @return the hostname portion of the URL
+	 */
+	private static String host(Properties props) {
+		// return props.getProperty("SSDB_HOST", "localhost");
+		return props.getProperty("SSDB_HOST", "localhost");
+	}
 
-    /**
-     * @return the username of the URL
-     */
-    private static String user(Properties props)
-    {
-        return props.getProperty("user", "");
-    }
+	/**
+	 * @return the port number portion of the URL or the default if no port was
+	 *         specified
+	 */
+	private static int port(Properties props) {
+		return Integer.parseInt(props.getProperty("SSDB_PORT", "8888"));
+	}
+
+	/**
+	 * @return the username of the URL
+	 */
+	private static String user(Properties props) {
+		return props.getProperty("user", "");
+	}
 
 }

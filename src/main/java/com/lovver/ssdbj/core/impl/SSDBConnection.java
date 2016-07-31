@@ -10,14 +10,14 @@ import com.lovver.ssdbj.core.ConnectionFactory;
 import com.lovver.ssdbj.core.ProtocolConnection;
 import com.lovver.ssdbj.exception.SSDBException;
 
-public class SSDBConnection implements  BaseConnection {
-	
-    private ProtocolConnection protoConnection;
-	
+public class SSDBConnection implements BaseConnection {
+
+	private ProtocolConnection protoConnection;
+
 	public SSDBConnection(String host, int port, String user, Properties props) {
 		try {
-			this.protoConnection=ConnectionFactory.openConnection(host, port, user,  props);
-			
+			this.protoConnection = ConnectionFactory.openConnection(host, port, user, props);
+
 		} catch (SSDBException e) {
 			e.printStackTrace();
 		}
@@ -54,14 +54,13 @@ public class SSDBConnection implements  BaseConnection {
 	}
 
 	@Override
-	public BaseResultSet execute(String cmd,List<byte[]> params) throws SSDBException {
-		return  protoConnection.execute(cmd, params);
-		
+	public BaseResultSet execute(String cmd, List<byte[]> params) throws SSDBException {
+		return protoConnection.execute(cmd, params);
+
 	}
 
 	@Override
-	public boolean executeUpdate(String cmd, List<byte[]> params)
-			throws SSDBException {
+	public boolean executeUpdate(String cmd, List<byte[]> params) throws SSDBException {
 		return protoConnection.executeUpdate(cmd, params);
 	}
 }

@@ -1,6 +1,7 @@
 package com.lovver.ssdbj.loadbalance.impl;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,8 +18,8 @@ public class RoundRobinWeightLoadBalance extends AbstractLoadBalance {
 		Iterator<String> iteCluster=clusterReadQueue.keySet().iterator();
 		while(iteCluster.hasNext()){
 			String __key=iteCluster.next();
-			Vector<String> groupReadQueue = clusterReadQueue.get(__key);
-			Vector<String> groupWriteQueue = clusterWriteQueue.get(__key);
+			List<String> groupReadQueue = clusterReadQueue.get(__key);
+			List<String> groupWriteQueue = clusterWriteQueue.get(__key);
 			Map<String,Integer> groupReadQueueWeight = clusterReadQueueWeight.get(__key);
 			Map<String,Integer> groupWriteQueueWeight = clusterWriteQueueWeight.get(__key);
 			balanceQueue.put(__key, new RoundRobinWeightLoadBalanceQueue(groupReadQueue,groupWriteQueue,groupReadQueueWeight,groupWriteQueueWeight));
@@ -41,8 +42,8 @@ public class RoundRobinWeightLoadBalance extends AbstractLoadBalance {
 	
 	class RoundRobinWeightLoadBalanceQueue{
 		
-		protected  Vector<String> readQueue = new Vector<String>();
-		protected  Vector<String> writeQueue = new Vector<String>();
+		protected  List<String> readQueue = new Vector<String>();
+		protected  List<String> writeQueue = new Vector<String>();
 		
 		private int rCount=0;
 		private int wCount=0;
@@ -50,7 +51,7 @@ public class RoundRobinWeightLoadBalance extends AbstractLoadBalance {
 		private AtomicInteger rIndex = new AtomicInteger(0);
 		private AtomicInteger wIndex = new AtomicInteger(0);
 		
-		public RoundRobinWeightLoadBalanceQueue(Vector<String> readQueue,Vector<String> writeQueue,
+		public RoundRobinWeightLoadBalanceQueue(List<String> readQueue,List<String> writeQueue,
 				Map<String,Integer> groupReadQueueWeight,Map<String,Integer> groupWriteQueueWeight){
 			for(String ds_id:readQueue){
 				int weight=groupReadQueueWeight.get(ds_id);
