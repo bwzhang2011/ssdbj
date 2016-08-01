@@ -2,6 +2,7 @@ package com.lovver.ssdbj.config;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @SuppressWarnings("serial")
@@ -14,7 +15,7 @@ public class Cluster implements Serializable {
 	private int error_retry_times;
 	private int retry_interval;
 
-	private List<ClusterSsdbNode> lstSsdbNode = new ArrayList<ClusterSsdbNode>(2);
+	private List<ClusterSsdbNode> lstSsdbNode = new ArrayList<ClusterSsdbNode>();
 
 	public String getId() {
 		return id;
@@ -81,9 +82,12 @@ public class Cluster implements Serializable {
 	}
 
 	public void removeNode(String node_id) {
-		for (SsdbNode node : lstSsdbNode) {
+		Iterator<ClusterSsdbNode> iterator = lstSsdbNode.iterator();
+		while (iterator.hasNext()) {
+			SsdbNode node = iterator.next();
 			if (node.getId().equals(node_id)) {
-				this.lstSsdbNode.remove(node);
+				iterator.remove();
+				break;
 			}
 		}
 	}
