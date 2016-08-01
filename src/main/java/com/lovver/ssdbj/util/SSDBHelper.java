@@ -4,6 +4,9 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.lovver.ssdbj.core.impl.SSDBConnection;
+import com.lovver.ssdbj.pool.SSDBPoolConnection;
+
 public final class SSDBHelper {
 
 	public static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
@@ -30,5 +33,19 @@ public final class SSDBHelper {
 		}
 
 		return bP;
+	}
+
+	public static void closeConnection(SSDBPoolConnection conn) {
+		if (conn != null)
+			conn.close();
+	}
+
+	public static void closeConnection(SSDBConnection conn) {
+		if (conn != null) {
+			try {
+				conn.close();
+			} catch (Exception e) {
+			}
+		}
 	}
 }
