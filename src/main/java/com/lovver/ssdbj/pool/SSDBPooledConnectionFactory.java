@@ -19,7 +19,6 @@ public class SSDBPooledConnectionFactory<T> extends BasePooledObjectFactory<T> {
 	private Properties props;
 
 	public SSDBPooledConnectionFactory(String host, int port, String user, Properties props) {
-
 		this.props = props;
 		this.props.setProperty("SSDB_HOST", host);
 		this.props.setProperty("SSDB_PORT", port + "");

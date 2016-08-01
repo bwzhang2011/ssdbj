@@ -17,7 +17,7 @@ public class LoadBalanceFactory {
 
 	private final Map<String, LoadBalance> cachedLoadBalance = new ConcurrentHashMap<String, LoadBalance>();
 
-	private static LoadBalanceFactory instance = new LoadBalanceFactory();
+	private static final LoadBalanceFactory instance = new LoadBalanceFactory();
 
 	public static LoadBalanceFactory getInstance() {
 		return instance;

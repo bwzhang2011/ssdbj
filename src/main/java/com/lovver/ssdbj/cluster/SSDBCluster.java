@@ -15,21 +15,21 @@ public class SSDBCluster {
 	private static final Map<String, SSDBDataSource> mDS = new ConcurrentHashMap<String, SSDBDataSource>();
 
 	private static final LoadBalanceFactory balanceFactory = LoadBalanceFactory.getInstance();
-	
+
 	public static void initCluster(List<Cluster> clusters) {
 		balanceFactory.setClusterConfig(clusters);
-		
+
 		for (Cluster cluster : clusters) {
 			String cluster_id = cluster.getId();
 
 			List<ClusterSsdbNode> lstCNode = cluster.getLstSsdbNode();
-			
+
 			for (ClusterSsdbNode cNode : lstCNode) {
 				Properties props = getCNodeProperties(cNode);
-				
+
 				initDataSource(cluster_id, props, cNode);
 			}
-			
+
 			balanceFactory.createLoadBalance(cluster_id);
 		}
 
@@ -38,10 +38,10 @@ public class SSDBCluster {
 	public static SSDBDataSource getDataSource(String cluster_id, String ssdb_node_id) {
 		return mDS.get(cluster_id + "|" + ssdb_node_id);
 	}
-	
+
 	private static Properties getCNodeProperties(ClusterSsdbNode cNode) {
 		Properties props = new Properties();
-		// PropertyUtils.copyProperties(props, cNode);
+
 		props.put("loginTimeout", cNode.getLoginTimeout() + "");
 		props.put("password", cNode.getPassword());
 		props.put("protocolName", cNode.getProtocolName());
@@ -95,10 +95,10 @@ public class SSDBCluster {
 		if (null != cNode.getRemoveAbandonedTimeout()) {
 			props.put("removeAbandonedTimeout", cNode.getRemoveAbandonedTimeout());
 		}
-		
+
 		return props;
 	}
-	
+
 	private static void initDataSource(String cluster_id, Properties props, ClusterSsdbNode cNode) {
 		String host = props.getProperty("host", "localhost");
 		int port = Integer.parseInt(props.getProperty("port", "8888"));

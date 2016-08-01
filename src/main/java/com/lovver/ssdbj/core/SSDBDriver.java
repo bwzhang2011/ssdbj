@@ -35,7 +35,7 @@ public class SSDBDriver {
 		if (timeout != null) {
 			try {
 				return (long) (Float.parseFloat(timeout) * 1000);
-			} catch (NumberFormatException e) {				
+			} catch (NumberFormatException e) {
 				LOGGER.debug("Couldn't parse loginTimeout value: " + timeout);
 			}
 		}
@@ -129,7 +129,6 @@ public class SSDBDriver {
 	 * @return the hostname portion of the URL
 	 */
 	private static String host(Properties props) {
-		// return props.getProperty("SSDB_HOST", "localhost");
 		return props.getProperty("SSDB_HOST", "localhost");
 	}
 

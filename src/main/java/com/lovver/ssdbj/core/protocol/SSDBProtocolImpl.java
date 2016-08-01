@@ -1,5 +1,7 @@
 package com.lovver.ssdbj.core.protocol;
 
+import static com.lovver.ssdbj.util.SSDBHelper.getByteArrayParams;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -21,6 +23,8 @@ import com.lovver.ssdbj.core.SSDBCmd;
 import com.lovver.ssdbj.core.Stream2ResultSet;
 import com.lovver.ssdbj.core.impl.SSDBResultSet;
 import com.lovver.ssdbj.exception.SSDBException;
+
+import jodd.util.StringUtil;
 
 public class SSDBProtocolImpl implements Protocol {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SSDBProtocolImpl.class);
@@ -48,7 +52,7 @@ public class SSDBProtocolImpl implements Protocol {
 	}
 
 	public void sendCommand(String cmd, List<byte[]> params) throws SSDBException {
-		MemoryStream buf = new MemoryStream(4096);
+		MemoryStream buf = new MemoryStream(SEND_BUFFER);
 		Integer len = cmd.length();
 		buf.write(len.toString());
 		buf.write('\n');
@@ -79,13 +83,13 @@ public class SSDBProtocolImpl implements Protocol {
 				if (ret != null) {
 					return ret;
 				}
-				byte[] bs = new byte[8192];
+				byte[] bs = new byte[READ_BUFFER];
 				int len = inputStream.read(bs);
 
 				input.write(bs, 0, len);
 			}
 		} catch (Exception e) {
-			LOGGER.error("Received fail", e);
+			LOGGER.error("Receive fail", e);
 			throw new SSDBException(e);
 		}
 	}
@@ -177,6 +181,15 @@ public class SSDBProtocolImpl implements Protocol {
 				case SCAN:
 					baseResult = scanCmdSSDBResultSet();
 					break;
+				case RSCAN:
+					baseResult = rscanCmdSSDBResultSet();
+					break;
+				case INCR:
+					baseResult = incrCmdSSDBResultSet();
+					break;
+				case HGET:
+					baseResult = hgetCmdSSDBResultSet();
+					break;
 				case HSCAN:
 					baseResult = hscanCmdSSDBResultSet();
 					break;
@@ -219,119 +232,123 @@ public class SSDBProtocolImpl implements Protocol {
 			}
 		}
 
-		private SSDBResultSet getCmdSSDBResultSet() throws Exception {
-			if (result.size() != 2) {
+		private SSDBResultSet<byte[]> getCmdSSDBResultSet() throws Exception {
+			if (result.size() != CHECK_SIZE) {
 				if ("not_found".equals(status)) {
-					return new SSDBResultSet<byte[]>(status, result, null);
+					return new SSDBResultSet<byte[]>(status, null, null);
 				}
-				throw new Exception("Invalid response");
+				throw new Exception("Invalid getcmd response");
 			}
 
-			return new SSDBResultSet<byte[]>(status, result, result.get(1));
+			return new SSDBResultSet<byte[]>(status, result.get(1));
 		}
 
-		private SSDBResultSet scanCmdSSDBResultSet() throws Exception {
+		private SSDBResultSet<Map<byte[], byte[]>> scanCmdSSDBResultSet() throws Exception {
 			buildMap();
-			return new SSDBResultSet<Map<byte[], byte[]>>(status, result, items);
+
+			return new SSDBResultSet<Map<byte[], byte[]>>(status, items);
 		}
 
-		private SSDBResultSet rscanCmdSSDBResultSet() throws Exception {
+		private SSDBResultSet<Map<byte[], byte[]>> rscanCmdSSDBResultSet() throws Exception {
 			return scanCmdSSDBResultSet();
 		}
 
-		private SSDBResultSet incrCmdSSDBResultSet() throws Exception {
-			if (result.size() != 2) {
+		private SSDBResultSet<Long> incrCmdSSDBResultSet() throws Exception {
+			if (result.size() != CHECK_SIZE) {
 				if ("not_found".equals(status)) {
-					return new SSDBResultSet<byte[]>(status, result, null);
+					return new SSDBResultSet<Long>(status, null, null);
 				}
-				throw new Exception("Invalid response");
+				throw new Exception("Invalid incrcmd response");
 			}
 
 			long ret = Long.parseLong(new String(result.get(1)));
 
-			return new SSDBResultSet<Long>(status, result, ret);
+			return new SSDBResultSet<Long>(status, ret);
 		}
 
-		private SSDBResultSet hgetCmdSSDBResultSet() throws Exception {
-			if (result.size() != 2) {
+		private SSDBResultSet<byte[]> hgetCmdSSDBResultSet() throws Exception {
+			if (result.size() != CHECK_SIZE) {
 				if ("not_found".equals(status)) {
-					return new SSDBResultSet<byte[]>(status, result, null);
+					return new SSDBResultSet<byte[]>(status, null, null);
 				}
-				throw new Exception("Invalid response");
+				throw new Exception("Invalid hgetcmd response");
 			}
-			return new SSDBResultSet<byte[]>(status, result, result.get(1));
+			return new SSDBResultSet<byte[]>(status, result.get(1));
 		}
 
-		private SSDBResultSet hscanCmdSSDBResultSet() throws Exception {
+		private SSDBResultSet<Map<byte[], byte[]>> hscanCmdSSDBResultSet() throws Exception {
 			buildMap();
-			return new SSDBResultSet<Map<byte[], byte[]>>(status, result, items);
+
+			return new SSDBResultSet<Map<byte[], byte[]>>(status, items);
 		}
 
-		private SSDBResultSet hrscanCmdSSDBResultSet() throws Exception {
+		private SSDBResultSet<Map<byte[], byte[]>> hrscanCmdSSDBResultSet() throws Exception {
 			return hscanCmdSSDBResultSet();
 		}
 
-		private SSDBResultSet hincrCmdSSDBResultSet() throws Exception {
-			if (result.size() != 2) {
+		private SSDBResultSet<Long> hincrCmdSSDBResultSet() throws Exception {
+			if (result.size() != CHECK_SIZE) {
 				if ("not_found".equals(status)) {
-					return new SSDBResultSet<byte[]>(status, result, null);
+					return new SSDBResultSet<Long>(status, null, null);
 				}
-				throw new Exception("Invalid response");
-			}
-			long ret = 0;
-			ret = Long.parseLong(new String(result.get(1)));
-
-			return new SSDBResultSet<Long>(status, result, ret);
-		}
-
-		private SSDBResultSet zgetCmdSSDBResultSet() throws Exception {
-			if (result.size() != 2) {
-				if ("not_found".equals(status)) {
-					return new SSDBResultSet<byte[]>(status, result, null);
-				}
-				throw new Exception("Invalid response");
+				throw new Exception("Invalid hincrcmd response");
 			}
 			long ret = Long.parseLong(new String(result.get(1)));
 
-			return new SSDBResultSet<Long>(status, result, ret);
+			return new SSDBResultSet<Long>(status, ret);
 		}
 
-		private SSDBResultSet zscanCmdSSDBResultSet() throws Exception {
+		private SSDBResultSet<Long> zgetCmdSSDBResultSet() throws Exception {
+			if (result.size() != CHECK_SIZE) {
+				if ("not_found".equals(status)) {
+					return new SSDBResultSet<Long>(status, null, null);
+				}
+				throw new Exception("Invalid zgetcmd response");
+			}
+			long ret = Long.parseLong(new String(result.get(1)));
+
+			return new SSDBResultSet<Long>(status, ret);
+		}
+
+		private SSDBResultSet<Map<byte[], byte[]>> zscanCmdSSDBResultSet() throws Exception {
 			buildMap();
-			return new SSDBResultSet<Map<byte[], byte[]>>(status, result, items);
+
+			return new SSDBResultSet<Map<byte[], byte[]>>(status, items);
 		}
 
-		private SSDBResultSet zrscanCmdSSDBResultSet() throws Exception {
+		private SSDBResultSet<Map<byte[], byte[]>> zrscanCmdSSDBResultSet() throws Exception {
 			return zscanCmdSSDBResultSet();
 		}
 
-		private SSDBResultSet zincrCmdSSDBResultSet() throws Exception {
-			if (result.size() != 2) {
+		private SSDBResultSet<Long> zincrCmdSSDBResultSet() throws Exception {
+			if (result.size() != CHECK_SIZE) {
 				if ("not_found".equals(status)) {
-					return new SSDBResultSet<byte[]>(status, result, null);
+					// return new SSDBResultSet<byte[]>(status, result, null);
+					return new SSDBResultSet<Long>(status, null, null);
 				}
-				throw new Exception("Invalid response");
+				throw new Exception("Invalid zincrcmd response");
 			}
 			long ret = Long.parseLong(new String(result.get(1)));
 
-			return new SSDBResultSet<Long>(status, result, ret);
+			return new SSDBResultSet<Long>(status, ret);
 		}
 
-		private SSDBResultSet multiGetCmdSSDBResultSet() throws Exception {
+		private SSDBResultSet<Map<byte[], byte[]>> multiGetCmdSSDBResultSet() throws Exception {
 			buildMap();
-			return new SSDBResultSet<Map<byte[], byte[]>>(status, result, items);
+
+			return new SSDBResultSet<Map<byte[], byte[]>>(status, items);
 		}
 
-		private SSDBResultSet multiDelCmdSSDBResultSet() throws Exception {
+		private SSDBResultSet<Map<byte[], byte[]>> multiDelCmdSSDBResultSet() throws Exception {
 			return multiGetCmdSSDBResultSet();
 		}
 
-		private SSDBResultSet pingCmdSSDBResultSet() throws Exception {
-			return new SSDBResultSet<Map<byte[], byte[]>>(status, result, null);
+		private SSDBResultSet<Map<byte[], byte[]>> pingCmdSSDBResultSet() throws Exception {
+			return new SSDBResultSet<Map<byte[], byte[]>>(status, null, null);
 		}
 
 		private void buildMap() {
-			for (int i = 1; i < result.size(); i += 2) {
+			for (int i = 1; i + 1 < result.size(); i += 2) {
 				byte[] k = result.get(i);
 				byte[] v = result.get(i + 1);
 				keys.add(k);
@@ -383,13 +400,14 @@ public class SSDBProtocolImpl implements Protocol {
 
 	@Override
 	public void auth() {
-		final String sauth = props.getProperty("password");
-		List<byte[]> auth = new ArrayList<byte[]>() {
-			{
-				add(sauth.getBytes());
-			}
-		};
+		String sauth = props.getProperty("password");
+
+		if (StringUtil.isBlank(sauth)) {
+			return;
+		}
+
 		try {
+			List<byte[]> auth = getByteArrayParams(sauth);
 			sendCommand("auth", auth);
 			List<byte[]> authResult = receive();
 			if (!"ok".equals(new String(authResult.get(0)))) {

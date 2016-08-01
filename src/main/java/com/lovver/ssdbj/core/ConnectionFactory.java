@@ -12,9 +12,7 @@ import com.lovver.ssdbj.util.GT;
  */
 public abstract class ConnectionFactory {
 
-	private static final Object[][] versions = { { "1", new com.lovver.ssdbj.core.impl.ConnectionFactoryImpl() },
-			// { "2", new com.lovver.ssdbj.core.v2.ConnectionFactoryImpl() },
-	};
+	private static final Object[][] versions = { { "1", new com.lovver.ssdbj.core.impl.ConnectionFactoryImpl() } };
 
 	public static ProtocolConnection openConnection(String host, int port, String user, Properties info)
 			throws SSDBException {

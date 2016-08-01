@@ -11,7 +11,7 @@ import com.lovver.ssdbj.exception.SSDBException;
 public class SSDBPoolConnection<T extends SSDBConnection> implements BaseConnection {
 	private SSDBConnectionPools pools;
 
-	private T ori_conn = null;
+	private final T ori_conn;
 
 	public SSDBPoolConnection(T ssdb_conn) {
 		this.ori_conn = ssdb_conn;

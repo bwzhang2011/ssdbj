@@ -1,8 +1,7 @@
 package com.lovver.ssdbj;
 
+import static com.lovver.ssdbj.util.SSDBHelper.getByteArrayParams;
 
-import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -27,13 +26,13 @@ import jodd.util.StringUtil;
 
 public class SSDBJ {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SSDBJ.class);
-	
-	private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
-	
+
 	private static String DEFAULT_SSDBJ_FILE = "/ssdbj.xml";
-	
+
 	private static final Map<String, Cluster> cachedClusterConf = new ConcurrentHashMap<String, Cluster>();
-	
+
+	private static final LoadBalanceFactory balanceFactory = LoadBalanceFactory.getInstance();
+
 	static {
 		load(null);
 	}
@@ -48,16 +47,13 @@ public class SSDBJ {
 			List<Cluster> lstCluster = parse.loadSSDBJ(ssdbj_file);
 			SSDBCluster.initCluster(lstCluster);
 
-			// ≈‰÷√cache
 			for (Cluster cluster : lstCluster) {
 				cachedClusterConf.put(cluster.getId(), cluster);
 			}
 		} catch (SSDBJConfigException e) {
-			LOGGER.error("config file:{} load fail:{}", DEFAULT_SSDBJ_FILE, e);			
+			LOGGER.error("config file:{} load fail:{}", DEFAULT_SSDBJ_FILE, e);
 		}
 	}
-
-	private static final LoadBalanceFactory balanceFactory = LoadBalanceFactory.getInstance();
 
 	@SuppressWarnings("rawtypes")
 	public static SSDBResultSet execute(String cluster_id, SSDBCmd cmd, String... params) throws Exception {
@@ -68,10 +64,11 @@ public class SSDBJ {
 	private static SSDBResultSet execute(BaseConnection conn, SSDBCmd cmd, List<byte[]> params) throws Exception {
 		return (SSDBResultSet) conn.execute(cmd.getCmd(), params);
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked", "static-access" })
 	public static SSDBResultSet execute(String cluster_id, SSDBCmd cmd, List<String> params) throws Exception {
 		LoadBalance lb = balanceFactory.createLoadBalance(cluster_id);
+
 		SSDBPoolConnection conn = null;
 		SSDBResultSet rs = null;
 		SSDBDataSource ds = null;
@@ -81,11 +78,7 @@ public class SSDBJ {
 		Cluster cluster = cachedClusterConf.get(cluster_id);
 		int error_try_times = cluster.getError_retry_times();
 		try {
-			if (cmd.getSlave()) {
-				ds = lb.getReadDataSource(cluster_id);
-			} else {
-				ds = lb.getWriteDataSource(cluster_id);
-			}
+			ds = cmd.getSlave() ? lb.getReadDataSource(cluster_id) : lb.getWriteDataSource(cluster_id);
 			conn = ds.getConnection();
 			rs = execute(conn, cmd, bP);
 			/**
@@ -105,12 +98,11 @@ public class SSDBJ {
 					}
 				}
 			}
-		} catch (Exception e) {
+		} catch (Exception e) {			
 			LOGGER.error("ExecuteCmd:{}, clusterId:{}, params:{}, fail:{}", cmd, cluster_id, params, e);
 			throw e;
 		} finally {
-			if (conn != null)
-				conn.close();
+			closeConnection(conn);
 		}
 
 		// error master retry
@@ -131,13 +123,11 @@ public class SSDBJ {
 					}
 				}
 			} finally {
-				conn.close();
+				closeConnection(conn);
 			}
-		}
-
-	    if (rs.getStatus().equals("not_found") && cluster.isNotfound_master_retry()) {
-			try {				
-				//System.out.println("master retry to found!");
+		}else if (rs.getStatus().equals("not_found") && cluster.isNotfound_master_retry()) {
+			try {
+				// System.out.println("master retry to found!");
 				ds = lb.getWriteDataSource(cluster_id);
 				conn = ds.getConnection();
 				rs = (SSDBResultSet) conn.execute(cmd.getCmd(), bP);
@@ -146,10 +136,10 @@ public class SSDBJ {
 				LOGGER.error("ExecuteCmd:{}, clusterId:{}, params:{}, fail:{}", cmd, cluster_id, params, e);
 				throw e;
 			} finally {
-				conn.close();
+				closeConnection(conn);
 			}
 		}
-		
+
 		return rs;
 	}
 
@@ -158,41 +148,26 @@ public class SSDBJ {
 		LoadBalance lb = balanceFactory.createLoadBalance(cluster_id);
 		SSDBPoolConnection conn = null;
 		try {
-			SSDBDataSource ds = null;
-			ds = lb.getWriteDataSource(cluster_id);
+			SSDBDataSource ds = lb.getWriteDataSource(cluster_id);
 			conn = ds.getConnection();
 			return conn.executeUpdate(cmd.getCmd(), params);
 		} catch (Exception e) {
 			LOGGER.error("ExecuteUpdate:{}, clusterId:{}, params:{}, fail:{}", cmd, cluster_id, params, e);
 			throw e;
 		} finally {
-			conn.close();
+			closeConnection(conn);
 		}
 	}
 
 	public static boolean executeUpdate(String cluster_id, SSDBCmd cmd, String... params) throws Exception {
 		List<byte[]> bP = getByteArrayParams(params);
-		
+
 		return executeUpdate(cluster_id, cmd, bP);
 	}
 
-	private static List<byte[]> getByteArrayParams(List<String> params) {
-		List<byte[]> bP = new ArrayList<byte[]>(params.size());
-		
-		for(String param : params) {
-			bP.add(param.getBytes(DEFAULT_CHARSET));
-		}
-		
-		return bP;
+	private static void closeConnection(SSDBPoolConnection conn) {
+		if (conn != null)
+			conn.close();
 	}
-	
-	private static List<byte[]> getByteArrayParams(String... params) {
-		List<byte[]> bP = new ArrayList<byte[]>(params.length);
-		
-		for(String param : params) {
-			bP.add(param.getBytes(DEFAULT_CHARSET));
-		}
-		
-		return bP;
-	}
+
 }

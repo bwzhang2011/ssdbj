@@ -85,14 +85,13 @@ public class XMLConfigParse implements ConfigParser {
 
 		try {
 			// PropertyUtils.copyProperties(cnode, snode);
-			new BeanCopy(cnode, snode).copy();
+			new BeanCopy(snode, cnode).copy();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		String weight = xLBNode.getAttributeValue("weight");
-		if (StringUtil.isEmpty(weight)) {
-			weight = "1";
-		}
+		weight = StringUtil.isEmpty(weight) ? "1" : weight;
+		
 		cnode.setWeight(Integer.parseInt(weight));
 		String rw = xLBNode.getAttributeValue("rwMode");
 		cnode.setRw(rw);

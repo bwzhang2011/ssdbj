@@ -38,7 +38,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
 	class RandomBalanceQueue {
 
 		private final List<String> readQueue;
-		private List<String> writeQueue ;
+		private final List<String> writeQueue;
 
 		private int rCount = 0;
 		private int wCount = 0;
@@ -50,22 +50,16 @@ public class RandomLoadBalance extends AbstractLoadBalance {
 			this.wCount = this.writeQueue.size();
 		}
 
-		public synchronized String getReadDataSource() {
-			//int rIndex = RandomUtils.nextInt(rCount);
+		public String getReadDataSource() {
 			int rIndex = ThreadLocalRandom.current().nextInt(rCount);
-			String ds_id = this.readQueue.get(rIndex);
-			
-			//System.out.println(ds_id);
-			return ds_id;
+
+			return this.readQueue.get(rIndex);
 		}
 
 		public String getWriteDataSource() {
-			//int wIndex = RandomUtils.nextInt(wCount);
 			int wIndex = ThreadLocalRandom.current().nextInt(wCount);
-			String ds_id = this.writeQueue.get(wIndex);
-			
-			//System.out.println(ds_id);
-			return ds_id;
+
+			return this.writeQueue.get(wIndex);
 		}
 	}
 

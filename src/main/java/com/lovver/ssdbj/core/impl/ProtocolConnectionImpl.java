@@ -33,8 +33,7 @@ public class ProtocolConnectionImpl implements ProtocolConnection {
 		this.protocolName = protocolName;
 		this.protocolVersion = protocolVersion;
 		this.stream = stream;
-		this.user = user;
-		//this.props = infos;
+		this.user = user;		
 		this.protocol = ProtocolFactory.createSSDBProtocolImpl(protocolName, stream.getOutputStream(),
 				stream.getInputStream(), infos);
 		this.executor = protocol.getCommandExecutor();
